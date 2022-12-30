@@ -4,6 +4,9 @@ import * as fs from "fs"
 // NPM libs
 import axios from "axios"
 
+// Types
+import type { AxiosResponse } from "axios"
+
 const URL_BASE = "https://api.twitch.tv/helix/streams"
 
 class GetAllStreams {
@@ -12,7 +15,9 @@ class GetAllStreams {
 
     // States
     cursor:string
+    response:AxiosResponse
     res_data:any
+    rate_limit:any
     count_map_lenth_before:number
     count_map_same_lenth_count:number
 
@@ -25,7 +30,9 @@ class GetAllStreams {
 
         // States
         this.cursor = ""
+        this.response = null
         this.res_data = {}
+        this.rate_limit = {}
         this.count_map_lenth_before = 0
         this.count_map_same_lenth_count = 0
     }
@@ -38,8 +45,8 @@ class GetAllStreams {
         url.searchParams.append("first", "100")
         const url_str = url.href
         const response = await axios.get(url_str, { headers: { "Authorization": `Bearer ${this.access_token}`, "Client-Id": this.client_id } })
-        const data = response.data
-        this.res_data = data
+        this.response = response
+        this.res_data = this.response.data
         this.cursor = this.res_data.pagination.cursor
     }
 
@@ -57,6 +64,12 @@ class GetAllStreams {
     }
 
     processResData() {
+        console.log("processResData:")
+        // https://dev.twitch.tv/docs/api/guide#twitch-rate-limits
+        for(const key of ["limit", "remaining", "reset"]) {
+            this.rate_limit[key] = this.response.headers[`ratelimit-${key}`]
+        }
+        console.log(this.rate_limit)
         const streams = this.res_data.data
         this.all_streams = this.all_streams.concat(streams)
 
@@ -103,7 +116,8 @@ class GetAllStreams {
         }
         console.log(this.stream_id_count_map)
         console.log(Object.keys(this.stream_id_count_map).length)
-        fs.writeFileSync("all_streams.json", JSON.stringify(this.all_streams, null, 2))
+
+        fs.writeFileSync("data/all_streams.json", JSON.stringify(this.all_streams, null, 2))
     }
 }
 
