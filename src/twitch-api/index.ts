@@ -117,7 +117,7 @@ class GetAllStreams {
         console.log(this.stream_id_count_map)
         console.log(Object.keys(this.stream_id_count_map).length)
 
-        fs.writeFileSync("data/all_streams.json", JSON.stringify(this.all_streams, null, 2))
+        return this.all_streams
     }
 }
 
