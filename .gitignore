@@ -1,6 +1,11 @@
 # Secret
-api.txt
+cred/*
+!cred/.gitkeep
 
-# nodejs
+# Data (ignore to keep size small)
+data/*
+!data/.gitkeep
+
+# NPM
 node_modules
 package-lock.json
